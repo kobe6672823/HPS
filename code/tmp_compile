@@ -1,0 +1,1 @@
+g++ connection.cpp connection.hpp header.hpp main.cpp mime_types.cpp mime_types.hpp reply.cpp reply.hpp request_handler.cpp request_handler.hpp request.hpp request_parser.cpp request_parser.hpp server.cpp server.hpp -I/usr/include/boost -L/usr/local/lib -lboost_thread -lboost_system -o hps

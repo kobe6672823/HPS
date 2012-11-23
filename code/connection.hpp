@@ -16,10 +16,12 @@
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/timer.hpp>
 #include "reply.hpp"
 #include "request.hpp"
 #include "request_handler.hpp"
 #include "request_parser.hpp"
+#include "log.hpp"
 
 namespace http {
 namespace server3 {
@@ -32,7 +34,7 @@ class connection
 public:
 	/// Construct a connection with the given io_service.
 	explicit connection(boost::asio::io_service& io_service,
-		request_handler& handler);
+		request_handler& handler, Log& log_name);
 
 	/// Get the socket associated with the connection.
 	boost::asio::ip::tcp::socket& socket();
@@ -68,6 +70,12 @@ private:
 
 	/// The reply to be sent back to the client.
 	reply reply_;
+
+	//Log
+	Log& server_log_;
+
+	///timer
+	boost::timer reply_timer;
 };
 
 typedef boost::shared_ptr<connection> connection_ptr;

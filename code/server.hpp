@@ -18,6 +18,7 @@
 #include <boost/shared_ptr.hpp>
 #include "connection.hpp"
 #include "request_handler.hpp"
+#include "log.hpp"
 
 namespace http {
 namespace server3 {
@@ -30,7 +31,7 @@ public:
 	/// Construct the server to listen on the specified TCP address and port, and
 	/// serve up files from the given directory.
 	explicit server(const std::string& address, const std::string& port,
-		const std::string& doc_root, std::size_t thread_pool_size);
+		const std::string& doc_root, std::size_t thread_pool_size, const std::string& log_name);
 
 	/// Run the server's io_service loop.
 	void run();
@@ -62,6 +63,9 @@ private:
 
 	/// The handler for all incoming requests.
 	request_handler request_handler_;
+
+	/// Log
+	Log server_log_;
 };
 
 } // namespace server3

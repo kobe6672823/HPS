@@ -16,8 +16,8 @@
 namespace http {
 namespace server3 {
 
-connection::connection(boost::asio::io_service& io_service, request_handler& handler)
-	: strand_(io_service), socket_(io_service), request_handler_(handler)
+connection::connection(boost::asio::io_service& io_service, request_handler& handler, Log& log_name)
+	: strand_(io_service), socket_(io_service), request_handler_(handler), server_log_(log_name)
 {
 }
 
@@ -43,7 +43,12 @@ void connection::handle_read(const boost::system::error_code& e, std::size_t byt
 
 		if (result)
 		{
+			server_log_.log_for_request(socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port(), request_.uri);
 			request_handler_.handle_request(request_, reply_);
+			if (reply_.status == reply::bad_request)
+				server_log_.log_for_error(socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port(), request_.uri, "bad request");
+			else if (reply_.status == reply::not_found)
+				server_log_.log_for_error(socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port(), request_.uri, "not found");
 			boost::asio::async_write(socket_, reply_.to_buffers(),
 				strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
 					boost::asio::placeholders::error)));
@@ -74,6 +79,8 @@ void connection::handle_write(const boost::system::error_code& e)
 {
 	if (!e)
 	{
+		if (reply_.status == reply::ok)
+			server_log_.log_for_send(socket_.remote_endpoint().address().to_string(), socket_.remote_endpoint().port(), request_.uri, reply_.content.size(), reply_timer.elapsed() * 1000);
 		// Initiate graceful connection closure.
 		boost::system::error_code ignored_ec;
 		socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);

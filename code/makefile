@@ -1,30 +1,28 @@
-all : hps
+all: hps
 
-hps : connection.o main.o mime_types.o reply.o request_handler.o request_parser.o server.o
-	g++ connection.o main.o mime_types.o reply.o request_handler.o request_parser.o server.o -I/usr/include/boost -L/usr/local/lib -lboost_thread -lboost_system -o hps 
-	
-connection.o : connection.cpp connection.hpp reply.hpp request.hpp request_handler.hpp request_parser.hpp
-	g++ connection.cpp -I/usr/include/boost -L/usr/local/lib  -lboost_thread -lboost_system -o connection.o 
+hps: main.o server.o connection.o reply.o request_handler.o request_parser.o mime_types.o log.o memcache.o
+	g++ -o hps -L/usr/local/lib main.o server.o connection.o reply.o request_handler.o request_parser.o mime_types.o -lboost_thread -lboost_system log.o memcache.o
 
-main.o : main.cpp server.hpp
-	g++ main.cpp -L/usr/local/lib  -lboost_thread -lboost_system -o main.o
+main.o: main.cpp server.hpp
+	g++ -o main.o -c -g main.cpp
 
-mime_types.o : mime_types.cpp mime_types.hpp
-	g++ mime_types.cpp -L/usr/local/lib  -lboost_thread -lboost_system -o mime_types.o
+server.o: server.cpp server.hpp connection.hpp request_handler.hpp log.hpp
+	g++ -o server.o -c -g server.cpp
 
-reply.o : reply.cpp reply.hpp header.hpp
-	g++ reply.cpp -L/usr/local/lib  -lboost_thread -lboost_system -o reply.o
+connection.o: connection.cpp connection.hpp reply.hpp request.hpp request_handler.hpp request_parser.hpp log.hpp
+	g++ -o connection.o -c -g connection.cpp
 
-request_handler.o : request_handler.cpp request_handler.hpp mime_types.hpp reply.hpp request.hpp
-	g++ request_handler.cpp -L/usr/local/lib  -lboost_thread -lboost_system -o request_handler.o
+reply.o: reply.cpp reply.hpp header.hpp
+	g++ -o reply.o -c -g reply.cpp
 
-request_parser.o : request_parser.cpp request_parser.hpp request.hpp
-	g++ request_parser.cpp -L/usr/local/lib  -lboost_thread -lboost_system -o request_parser.o
+request_handler.o: request_handler.cpp request_handler.hpp mime_types.hpp reply.hpp request.hpp memcache.hpp
+	g++ -o request_handler.o -c -g request_handler.cpp
 
-server.o : server.cpp server.hpp connection.hpp request_handler.hpp
-	g++ server.cpp -lboost_thread -L/usr/local/lib  -lboost_thread -lboost_system -o server.o
+request_parser.o: request_parser.cpp request_parser.hpp request.hpp
+	g++ -o request_parser.o -c -g request_parser.cpp
 
-.PHONY :clean
+mime_types.o: mime_types.cpp mime_types.hpp
+	g++ -o mime_types.o -c -g mime_types.cpp
 
-clean:
+clear:
 	rm *.o hps
